@@ -603,7 +603,7 @@ int main(int argc, char **argv)
     read(ifd, cpu_mem, MEM_SIZE);
 
     PC = RESET_HANDLER;
-    printf("smachine start\n");
+    printf("vmachine start\n");
     while (1) {
         cpu_run();
         dump_regs();
