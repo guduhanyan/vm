@@ -1,1 +1,99 @@
 # vm
+simple 32-bit risc cpu
+
+include the simulator, assembler, ccompiler, just for fun. :)
+
+cpu state machine: 
+while (1) {
+    instruction fetch;
+    instruction decode;
+    instruction execute;
+    pc = pc + 4 (if no branch operation)
+}
+
+vector table:
+0x0     Reset_Handler
+0x4     Irq_Handler
+0x8     Exc_Handler
+
+memory map
+0x0000 - 0x000C [int vector]
+0x000C - 0x1000 [text]
+0x1000 - 0x2000 [data]
+0x2000 - 0x4000 [stack]
+
+the cpu have 6 registers: r0 r1 r2 (fp) r3(sp) r4(pc) flag
+
+r0, r1 : general purpose registers
+r2(fp) : the frame pointer register
+r3(sp) : the stack pointer register
+r4(pc) : the program counter register
+flag   : cpu status register include (negative zero overflow)
+
+it's a arm-like cpu, base on load store architecture, 
+but I didn't design the lr register, function call is totally base on the stack
+
+here is the stack frame
+===========
+argx
+...
+arg2
+arg1
+return address
+old fp         <- new fp
+local var1
+local var2
+...
+local varx
+===========
+sub function can use r0, r1 freely, use r0 as return value.
+
+#instruction type
+
+I. data transfer operation & addressing mode
+    1. imm
+        mov r0, #0x12345678     (0x12345678 is store at pc+4)
+    
+    2. register direct
+        mov r0, r1
+    
+    3. register indirect
+        ldr r0, [r1]    (load r0 from memory [r1])
+        str r0, [r1]    (store r0 to memory [r1])
+
+II. stack operation
+    1. push r0
+    2. pop  r0
+
+III. function call
+    1. call r0
+    2. ret
+
+IV. arithmetic & logic operation 
+    1. add r0,r0,r1     (r0=r0+r1)
+    2. add r0,r0,#0x123456780 (r0=r0+0x12345678)
+    3. div r0,r0,r1     (r0=r0/r1, r1=r0%r1)
+    4. div r0,r0,#0x123456780 (r0=r0/0x12345678)
+    5. lol r0,r0,#1
+    6. sub mul and or xor are the same format
+
+V. jmp operation
+    1. jmp
+    2. jmpn jmpnn
+    3. jmpz jmpnz
+    4. jmpo jmpno
+
+VI. system ctrl operation
+    1. halt
+
+#instruction format
+struct __instruction__ {
+    u32 dst:       3;   /* r0 - r4 */
+    u32 am_dst:    2;   /* address mode, include imm, register direct, register indirect */
+    u32 src1:      3;
+    u32 am_src1:   2;
+    u32 src2:      3;
+    u32 am_src2:   2;
+    u32 reserved:  1;
+    u32 op_type:  16;   /* op-type << 8 | sub-type (mov, ldr, str, push, pop, call, ret, add, div, sub, mul, and, or, xor, jmp[n][nzo]) */
+};
