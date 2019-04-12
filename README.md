@@ -1,4 +1,3 @@
-# vm
 simple 32-bit risc cpu
 
 include the simulator, assembler, ccompiler, just for fun. :)
